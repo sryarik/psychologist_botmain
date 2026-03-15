@@ -122,7 +122,7 @@ async def ask_ai(user_message, user_name):
 Пример идеального ответа: "{user_name}, я слышу, как тебе тяжело. Это абсолютно нормально — испытывать тревогу перед важными событиями. Хочешь, попробуем просто подышать вместе?"
 """
         full_prompt = f"{system_prompt}\nКлиент: {user_message}\nПсихолог:"
-        url = f"{AI_API_URL}{requests.utils.quote(full_prompt)}?model=llama-3.3-70b&temperature=0.8&max_tokens=400"
+        url = f"{AI_API_URL}{requests.utils.quote(full_prompt)}?model=gpt-4o-mini&temperature=0.8&max_tokens=400"
         
         print(f"📡 URL запроса (первые 100 символов): {url[:100]}...")
         
