@@ -414,8 +414,16 @@ print("🌐 Веб-сервер для Render запущен")
 # ===== ОСНОВНАЯ ФУНКЦИЯ =====
 def main():
     try:
-        app = Application.builder().token(BOT_TOKEN).build()
+        # Принудительно создаём event loop для главного потока
+        import asyncio
+        try:
+            asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
 
+        # Далее всё как было
+        app = Application.builder().token(BOT_TOKEN).build()
         test_conv = ConversationHandler(
             entry_points=[
                 CommandHandler("test", test_command),
