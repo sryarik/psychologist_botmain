@@ -1,19 +1,26 @@
 import logging
 import requests
-import os  # Добавлено для Render
+import os
 from datetime import datetime
 from collections import defaultdict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler, CallbackQueryHandler
 
+# ===== ИМПОРТ ДЛЯ GEMINI =====
+import google.generativeai as genai
+
 # ===== НАСТРОЙКИ =====
-# Токен теперь берётся из переменной окружения (для Render)
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 if not BOT_TOKEN:
     print("❌ ОШИБКА: переменная окружения BOT_TOKEN не установлена!")
     exit(1)
 
-AI_API_URL = "https://text.pollinations.ai/"
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    print("✅ Gemini настроен")
+else:
+    print("⚠️ GEMINI_API_KEY не найден, бот не сможет отвечать на сообщения")
 
 # Состояния для ConversationHandler
 TEST, DIALOG = range(2)
@@ -102,44 +109,23 @@ CRISIS_CONTACTS = """
 Ты не один. Пожалуйста, обратись за помощью. ❤️
 """
 
-# ===== ФУНКЦИЯ ЗАПРОСА К НЕЙРОСЕТИ =====
+# ===== НОВАЯ ФУНКЦИЯ ЗАПРОСА К GEMINI =====
 async def ask_ai(user_message, user_name):
+    if not GEMINI_API_KEY:
+        return "Я здесь. Расскажи, что случилось?"
     try:
-        print(f"🔍 Отправляю запрос к Pollinations: {user_message[:50]}...")
-        system_prompt = f"""Ты — опытный психолог (имя клиента: {user_name}).
+        model = genai.GenerativeModel('gemini-1.5-flash')  # Бесплатная модель
+        prompt = f"""Ты — эмпатичный психолог. Имя клиента: {user_name}.
+Отвечай тепло, поддерживающе, задавай уточняющие вопросы.
+Не давай пустых советов.
 
-СТИЛЬ ОБЩЕНИЯ:
-- Тёплый, принимающий, профессиональный
-- Используй имя клиента
-- Задавай открытые вопросы
-- Предлагай простые техники
-
-ЗАПРЕЩЕНО:
-- Давать пустые советы вроде "просто не думай"
-- Игнорировать эмоции
-- Быть роботизированным
-
-Пример идеального ответа: "{user_name}, я слышу, как тебе тяжело. Это абсолютно нормально — испытывать тревогу перед важными событиями. Хочешь, попробуем просто подышать вместе?"
-"""
-        full_prompt = f"{system_prompt}\nКлиент: {user_message}\nПсихолог:"
-        url = f"{AI_API_URL}{requests.utils.quote(full_prompt)}?model=gpt-4o-mini&temperature=0.8&max_tokens=400"
-        
-        print(f"📡 URL запроса (первые 100 символов): {url[:100]}...")
-        
-        response = requests.get(url, timeout=30)
-        print(f"📊 Статус ответа: {response.status_code}")
-        
-        if response.status_code == 200:
-            print("✅ Ответ получен, длина:", len(response.text))
-            return response.text.strip()
-        else:
-            print(f"❌ Ошибка API, статус: {response.status_code}, текст: {response.text[:200]}")
-            return "😔 Техническая пауза. Расскажи подробнее, я слушаю."
+Клиент: {user_message}
+Психолог:"""
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
-        print(f"🔥 Критическая ошибка в ask_ai: {e}")
-        import traceback
-        traceback.print_exc()
-        return "Связь прервалась, но я здесь. Что ты чувствуешь прямо сейчас?"
+        print(f"Ошибка Gemini: {e}")
+        return "Я здесь. Расскажи, что случилось?"
 
 # ===== ОБРАБОТЧИКИ КОМАНД =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -432,7 +418,6 @@ def main():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        # Далее всё как было
         app = Application.builder().token(BOT_TOKEN).build()
         test_conv = ConversationHandler(
             entry_points=[
@@ -465,7 +450,7 @@ def main():
         import traceback
         print("❌ Критическая ошибка в main:")
         traceback.print_exc()
-        
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     main()
