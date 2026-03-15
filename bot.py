@@ -112,9 +112,9 @@ CRISIS_CONTACTS = """
 # ===== НОВАЯ ФУНКЦИЯ ЗАПРОСА К GEMINI =====
 async def ask_ai(user_message, user_name):
     if not GEMINI_API_KEY:
-        return "Я здесь. Расскажи, что случилось?"
+        return "❌ Нет API-ключа Gemini. Добавь его в переменные окружения."
     try:
-        model = genai.GenerativeModel('gemini-1.0-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""Ты — эмпатичный психолог. Имя клиента: {user_name}.
 Отвечай тепло, поддерживающе, задавай уточняющие вопросы.
 Не давай пустых советов.
@@ -124,8 +124,8 @@ async def ask_ai(user_message, user_name):
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        print(f"Ошибка Gemini: {e}")
-        return "Я здесь. Расскажи, что случилось?"
+        # Возвращаем ошибку прямо в Telegram
+        return f"❌ Ошибка Gemini: {e}"
 
 # ===== ОБРАБОТЧИКИ КОМАНД =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
