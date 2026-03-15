@@ -105,6 +105,7 @@ CRISIS_CONTACTS = """
 # ===== ФУНКЦИЯ ЗАПРОСА К НЕЙРОСЕТИ =====
 async def ask_ai(user_message, user_name):
     try:
+        print(f"🔍 Отправляю запрос к Pollinations: {user_message[:50]}...")
         system_prompt = f"""Ты — опытный психолог (имя клиента: {user_name}).
 
 СТИЛЬ ОБЩЕНИЯ:
@@ -122,13 +123,22 @@ async def ask_ai(user_message, user_name):
 """
         full_prompt = f"{system_prompt}\nКлиент: {user_message}\nПсихолог:"
         url = f"{AI_API_URL}{requests.utils.quote(full_prompt)}?model=llama-3.3-70b&temperature=0.8&max_tokens=400"
+        
+        print(f"📡 URL запроса (первые 100 символов): {url[:100]}...")
+        
         response = requests.get(url, timeout=30)
+        print(f"📊 Статус ответа: {response.status_code}")
+        
         if response.status_code == 200:
+            print("✅ Ответ получен, длина:", len(response.text))
             return response.text.strip()
         else:
+            print(f"❌ Ошибка API, статус: {response.status_code}, текст: {response.text[:200]}")
             return "😔 Техническая пауза. Расскажи подробнее, я слушаю."
     except Exception as e:
-        print(f"Ошибка AI: {e}")
+        print(f"🔥 Критическая ошибка в ask_ai: {e}")
+        import traceback
+        traceback.print_exc()
         return "Связь прервалась, но я здесь. Что ты чувствуешь прямо сейчас?"
 
 # ===== ОБРАБОТЧИКИ КОМАНД =====
