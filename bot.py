@@ -116,7 +116,7 @@ async def ask_ai(user_message, user_name):
     if not GEMINI_API_KEY:
         return "❌ Нет API-ключа Gemini. Добавь его в переменные окружения."
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-1.0-pro')  # или 'gemini-pro'
         prompt = f"""Ты — эмпатичный психолог. Имя клиента: {user_name}.
 Отвечай тепло, поддерживающе, задавай уточняющие вопросы.
 Не давай пустых советов.
