@@ -413,36 +413,41 @@ print("🌐 Веб-сервер для Render запущен")
 
 # ===== ОСНОВНАЯ ФУНКЦИЯ =====
 def main():
-    app = Application.builder().token(BOT_TOKEN).build()
+    try:
+        app = Application.builder().token(BOT_TOKEN).build()
 
-    test_conv = ConversationHandler(
-        entry_points=[
-            CommandHandler("test", test_command),
-            MessageHandler(filters.Regex("^📊 Тест на тревожность$"), test_command)
-        ],
-        states={TEST: [CallbackQueryHandler(test_handler, pattern="^ans_")]},
-        fallbacks=[CommandHandler("start", start)]
-    )
+        test_conv = ConversationHandler(
+            entry_points=[
+                CommandHandler("test", test_command),
+                MessageHandler(filters.Regex("^📊 Тест на тревожность$"), test_command)
+            ],
+            states={TEST: [CallbackQueryHandler(test_handler, pattern="^ans_")]},
+            fallbacks=[CommandHandler("start", start)]
+        )
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CommandHandler("profile", profile))
-    app.add_handler(CommandHandler("dialog", dialog))
-    app.add_handler(CommandHandler("tips", tips))
-    app.add_handler(CommandHandler("levels", levels))
-    app.add_handler(CommandHandler("crisis", crisis))
-    app.add_handler(CommandHandler("task", task_command))
-    app.add_handler(test_conv)
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("help", help_command))
+        app.add_handler(CommandHandler("profile", profile))
+        app.add_handler(CommandHandler("dialog", dialog))
+        app.add_handler(CommandHandler("tips", tips))
+        app.add_handler(CommandHandler("levels", levels))
+        app.add_handler(CommandHandler("crisis", crisis))
+        app.add_handler(CommandHandler("task", task_command))
+        app.add_handler(test_conv)
 
-    app.add_handler(MessageHandler(filters.Regex("^🧘 Упражнения$"), show_exercises))
-    app.add_handler(MessageHandler(filters.Regex("^📝 Задания$"), show_tasks))
-    app.add_handler(MessageHandler(filters.Regex("^🆘 Помощь$"), crisis))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, talk))
-    app.add_handler(CallbackQueryHandler(button_callback, pattern="^(ex_|task_|back_|menu|back_ex|back_task)$"))
+        app.add_handler(MessageHandler(filters.Regex("^🧘 Упражнения$"), show_exercises))
+        app.add_handler(MessageHandler(filters.Regex("^📝 Задания$"), show_tasks))
+        app.add_handler(MessageHandler(filters.Regex("^🆘 Помощь$"), crisis))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, talk))
+        app.add_handler(CallbackQueryHandler(button_callback, pattern="^(ex_|task_|back_|menu|back_ex|back_task)$"))
 
-    print("✅ Бот-психолог запущен!")
-    app.run_polling()
-
+        print("✅ Бот-психолог запущен!")
+        app.run_polling()
+    except Exception as e:
+        import traceback
+        print("❌ Критическая ошибка в main:")
+        traceback.print_exc()
+        
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     main()
