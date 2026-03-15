@@ -16,7 +16,9 @@ if not BOT_TOKEN:
     exit(1)
 
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+print(f"🔍 Проверка: GEMINI_API_KEY = {'найден' if GEMINI_API_KEY else 'НЕ НАЙДЕН'}")
 if GEMINI_API_KEY:
+    print(f"🔑 Первые 5 символов ключа: {GEMINI_API_KEY[:5]}...")
     genai.configure(api_key=GEMINI_API_KEY)
     print("✅ Gemini настроен")
 else:
@@ -124,8 +126,9 @@ async def ask_ai(user_message, user_name):
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        # Возвращаем ошибку прямо в Telegram
-        return f"❌ Ошибка Gemini: {e}"
+        error_text = f"❌ Ошибка Gemini: {e}"
+        print(error_text)  # для логов
+        return error_text  # пользователь увидит в Telegram
 
 # ===== ОБРАБОТЧИКИ КОМАНД =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
